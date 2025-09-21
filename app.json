@@ -25,12 +25,38 @@
       "expo-font",
       "expo-web-browser",
       [
+        "@reactvision/react-viro",
+        {
+          "android": {
+            "cameraUsagePermission": "$(PRODUCT_NAME) uses your camera for AR experiences. This is a custom InfoPlist string!"
+          },
+          "ios": {
+            "cameraUsagePermission": "$(PRODUCT_NAME) uses your camera for AR experiences. This is a custom InfoPlist string!"
+          }
+        }
+      ],
+      [
         "react-native-vision-camera",
         {
           "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
           "enableMicrophonePermission": true,
-          "enableFrameProcessors": false,
+          "enableFrameProcessors": true,
           "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
+        }
+      ],
+      
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
+            "minSdkVersion": 26
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
         }
       ]
     ],
@@ -42,14 +68,7 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.anonymous.gilifacedetection",
-      "minSdkVersion": 26
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "ec3ef3f4-e774-4172-bbdf-dd1b74e55917"
-      }
+      "package": "com.anonymous.gilifacedetection"
     }
   }
 }

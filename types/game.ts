@@ -31,9 +31,19 @@ export interface Player {
 }
 
 export interface HeadGesture {
-  direction: 'left' | 'right' | 'center';
+  direction: 'left' | 'right' | 'center' | 'up' | 'down';
   confidence: number;
   timestamp: number;
+  intensity: number; // 0-1, how strong the gesture is
+  duration: number; // how long the gesture has been held in ms
+  rotation: {
+    yaw: number; // left/right rotation in degrees
+    pitch: number; // up/down rotation in degrees
+    roll: number; // tilt rotation in degrees
+  };
+  velocity: number; // speed of head movement
+  isStable: boolean; // whether the gesture is stable/consistent
+  previousDirection?: 'left' | 'right' | 'center' | 'up' | 'down';
 }
 
 export interface ARData {

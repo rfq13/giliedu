@@ -52,10 +52,10 @@ export default function SinglePlayerScreen() {
   const handleStartGame = () => {
     switch (selectedMode) {
       case 'quick':
-        router.push('ar-camera');
+        router.push('/game/ar-camera');
         break;
       case 'practice':
-        router.push('/game/practice');
+        router.push('/game/ar-camera');
         break;
       case 'challenge':
         router.push('/game/challenge');
@@ -71,7 +71,7 @@ export default function SinglePlayerScreen() {
       >
         <Text style={styles.headerTitle}>Single Player</Text>
         <Text style={styles.headerSubtitle}>
-          Choose your game mode and test your knowledge
+          Choose your game mode and test your knowledge wongkoko
         </Text>
       </LinearGradient>
 

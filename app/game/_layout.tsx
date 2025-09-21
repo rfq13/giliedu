@@ -5,6 +5,7 @@ export default function GameLayout() {
     <Stack>
       <Stack.Screen name="single-player" options={{ headerShown: false }} />
       <Stack.Screen name="ar-camera" options={{ headerShown: false }} />
+
       <Stack.Screen name="party-mode" options={{ headerShown: false }} />
     </Stack>
   );
