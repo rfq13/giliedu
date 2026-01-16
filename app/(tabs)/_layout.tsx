@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Trophy, Settings, Users } from 'lucide-react-native';
+import { Chrome as Home, Mic, TrendingUp, User } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -19,7 +19,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Timeline',
           tabBarIcon: ({ size, color }) => (
             <Home size={size} color={color} />
           ),
@@ -28,27 +28,27 @@ export default function TabLayout() {
       <Tabs.Screen
         name="game"
         options={{
-          title: 'Play',
+          title: 'Cerita',
           tabBarIcon: ({ size, color }) => (
-            <Users size={size} color={color} />
+            <Mic size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="leaderboard"
         options={{
-          title: 'Leaderboard',
+          title: 'Progress',
           tabBarIcon: ({ size, color }) => (
-            <Trophy size={size} color={color} />
+            <TrendingUp size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Profil',
           tabBarIcon: ({ size, color }) => (
-            <Settings size={size} color={color} />
+            <User size={size} color={color} />
           ),
         }}
       />

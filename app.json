@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "gili-face-detection",
-    "slug": "gili-face-detection",
+    "name": "Gili",
+    "slug": "gili",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,7 +11,6 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
         "NSMicrophoneUsageDescription": "$(PRODUCT_NAME) needs access to your Microphone."
       }
     },
@@ -25,26 +24,11 @@
       "expo-font",
       "expo-web-browser",
       [
-        "@reactvision/react-viro",
+        "expo-av",
         {
-          "android": {
-            "cameraUsagePermission": "$(PRODUCT_NAME) uses your camera for AR experiences. This is a custom InfoPlist string!"
-          },
-          "ios": {
-            "cameraUsagePermission": "$(PRODUCT_NAME) uses your camera for AR experiences. This is a custom InfoPlist string!"
-          }
+          "microphonePermission": "Gili membutuhkan akses mikrofon untuk merekam ceritamu."
         }
       ],
-      [
-        "react-native-vision-camera",
-        {
-          "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
-          "enableMicrophonePermission": true,
-          "enableFrameProcessors": true,
-          "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
-        }
-      ],
-      
       [
         "expo-build-properties",
         {
@@ -64,11 +48,8 @@
       "typedRoutes": true
     },
     "android": {
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ],
-      "package": "com.anonymous.gilifacedetection"
+      "permissions": [],
+      "package": "com.gili.app"
     }
   }
 }

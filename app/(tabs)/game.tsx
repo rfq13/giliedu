@@ -5,165 +5,329 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  TextInput,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import {
+  Mic,
+  Edit3,
+  Sparkles,
+  ChevronRight,
+  Clock,
+  Pause,
   Play,
-  Users,
-  Settings,
-  BookOpen,
-  Zap,
-  Trophy,
+  X,
+  Send,
 } from 'lucide-react-native';
+import { useAudioRecorder } from '../../hooks/useAudioRecorder';
+import { storyAPI } from '../../services/api';
 
-export default function GameScreen() {
-  const [selectedDifficulty, setSelectedDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+interface StoryPrompt {
+  id: string;
+  title: string;
+  description: string;
+  ageGroup: 'sd' | 'smp' | 'sma';
+  icon: string;
+}
 
-  const categories = [
-    { id: 'science', name: 'Science', icon: '🔬', color: '#10B981' },
-    { id: 'history', name: 'History', icon: '🏛️', color: '#8B5CF6' },
-    { id: 'math', name: 'Math', icon: '🧮', color: '#F59E0B' },
-    { id: 'language', name: 'Language', icon: '📚', color: '#EF4444' },
-    { id: 'geography', name: 'Geography', icon: '🌍', color: '#06B6D4' },
-    { id: 'art', name: 'Art', icon: '🎨', color: '#EC4899' },
-  ];
+const storyPrompts: StoryPrompt[] = [
+  {
+    id: '1',
+    title: 'Liburan Terbaik',
+    description: 'Ceritakan pengalaman liburan paling berkesan yang pernah kamu alami.',
+    ageGroup: 'sd',
+    icon: '🏖️',
+  },
+  {
+    id: '2',
+    title: 'Pahlawanku',
+    description: 'Siapa orang yang paling kamu kagumi? Ceritakan mengapa!',
+    ageGroup: 'sd',
+    icon: '🦸',
+  },
+  {
+    id: '3',
+    title: 'Jika Aku Jadi...',
+    description: 'Jika kamu bisa jadi siapa saja sehari, siapa yang kamu pilih?',
+    ageGroup: 'smp',
+    icon: '✨',
+  },
+  {
+    id: '4',
+    title: 'Cerita Bebas',
+    description: 'Ceritakan apa saja yang ada di pikiranmu hari ini.',
+    ageGroup: 'sd',
+    icon: '💭',
+  },
+];
 
-  const difficulties = [
-    { level: 'easy', name: 'Easy', points: '10-20 pts', color: '#10B981' },
-    { level: 'medium', name: 'Medium', points: '30-50 pts', color: '#F59E0B' },
-    { level: 'hard', name: 'Hard', points: '60-100 pts', color: '#EF4444' },
-  ];
+export default function RuangCeritaScreen() {
+  const [inputMode, setInputMode] = useState<'audio' | 'text'>('audio');
+  const [selectedPrompt, setSelectedPrompt] = useState<StoryPrompt | null>(null);
+  const [storyText, setStoryText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const {
+    recordingState,
+    startRecording,
+    pauseRecording,
+    resumeRecording,
+    stopRecording,
+    cancelRecording,
+    formatDuration,
+  } = useAudioRecorder();
+
+  const handleStartRecording = async () => {
+    if (!selectedPrompt) {
+      Alert.alert('Pilih Topik', 'Silakan pilih topik cerita terlebih dahulu.');
+      return;
+    }
+    await startRecording();
+  };
+
+  const handleStopRecording = async () => {
+    const uri = await stopRecording();
+    if (uri) {
+      Alert.alert(
+        'Rekaman Selesai',
+        'Rekaman berhasil disimpan. Kirim untuk evaluasi AI?',
+        [
+          { text: 'Batal', style: 'cancel' },
+          { text: 'Kirim', onPress: () => handleSubmitStory(uri) },
+        ]
+      );
+    }
+  };
+
+  const handleSubmitStory = async (audioUri?: string) => {
+    if (!selectedPrompt) {
+      Alert.alert('Error', 'Silakan pilih topik cerita terlebih dahulu.');
+      return;
+    }
+
+    if (inputMode === 'text' && !storyText.trim()) {
+      Alert.alert('Error', 'Silakan tulis cerita terlebih dahulu.');
+      return;
+    }
+
+    if (inputMode === 'audio' && !audioUri) {
+      Alert.alert('Error', 'Silakan rekam cerita terlebih dahulu.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const storyData = {
+        prompt_id: selectedPrompt.id,
+        prompt_title: selectedPrompt.title,
+        input_type: inputMode,
+        content: inputMode === 'text' ? storyText : undefined,
+        audio_url: inputMode === 'audio' ? audioUri : undefined,
+      };
+
+      await storyAPI.createStory(storyData);
+
+      Alert.alert(
+        'Berhasil!',
+        'Ceritamu telah dikirim untuk evaluasi AI. Hasilnya akan muncul di timeline.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setStoryText('');
+              setSelectedPrompt(null);
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error submitting story:', error);
+      Alert.alert(
+        'Error',
+        'Gagal mengirim cerita. Pastikan kamu sudah login dan coba lagi.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
       <LinearGradient
-        colors={['#1F2937', '#374151']}
+        colors={['#10B981', '#059669']}
         style={styles.header}
       >
-        <Text style={styles.headerTitle}>Choose Your Game</Text>
+        <Sparkles size={32} color="white" />
+        <Text style={styles.headerTitle}>Ruang Cerita</Text>
         <Text style={styles.headerSubtitle}>
-          Test your knowledge with AR-powered questions
+          Ceritakan kisahmu dengan suara atau tulisan
         </Text>
       </LinearGradient>
 
       <View style={styles.content}>
-        {/* Game Mode Selection */}
-        <Text style={styles.sectionTitle}>Game Mode</Text>
-        <View style={styles.gameModeContainer}>
+        {/* Input Mode Toggle */}
+        <View style={styles.modeToggle}>
           <TouchableOpacity
-            style={styles.gameModeButton}
-            onPress={() => router.push('/game/single-player')}
+            style={[styles.modeButton, inputMode === 'audio' && styles.modeButtonActive]}
+            onPress={() => setInputMode('audio')}
           >
-            <LinearGradient
-              colors={['#8B5CF6', '#EC4899']}
-              style={styles.gameModeGradient}
-            >
-              <Play size={28} color="white" />
-              <Text style={styles.gameModeText}>Single Player</Text>
-              <Text style={styles.gameModeDescription}>
-                AR head gestures • Solo practice
-              </Text>
-            </LinearGradient>
+            <Mic size={20} color={inputMode === 'audio' ? 'white' : '#6B7280'} />
+            <Text style={[styles.modeButtonText, inputMode === 'audio' && styles.modeButtonTextActive]}>
+              Rekam Suara
+            </Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            style={styles.gameModeButton}
-            onPress={() => router.push('/game/party-mode')}
+            style={[styles.modeButton, inputMode === 'text' && styles.modeButtonActive]}
+            onPress={() => setInputMode('text')}
           >
-            <LinearGradient
-              colors={['#F59E0B', '#EF4444']}
-              style={styles.gameModeGradient}
-            >
-              <Users size={28} color="white" />
-              <Text style={styles.gameModeText}>Party Mode</Text>
-              <Text style={styles.gameModeDescription}>
-                Multiplayer • Friends can see the question
-              </Text>
-            </LinearGradient>
+            <Edit3 size={20} color={inputMode === 'text' ? 'white' : '#6B7280'} />
+            <Text style={[styles.modeButtonText, inputMode === 'text' && styles.modeButtonTextActive]}>
+              Tulis Cerita
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Difficulty Selection */}
-        <Text style={styles.sectionTitle}>Difficulty Level</Text>
-        <View style={styles.difficultyContainer}>
-          {difficulties.map((difficulty) => (
+        {/* Story Prompts */}
+        <Text style={styles.sectionTitle}>Pilih Topik Cerita</Text>
+        <View style={styles.promptsContainer}>
+          {storyPrompts.map((prompt) => (
             <TouchableOpacity
-              key={difficulty.level}
+              key={prompt.id}
               style={[
-                styles.difficultyButton,
-                selectedDifficulty === difficulty.level && styles.selectedDifficulty,
-                { borderColor: difficulty.color }
+                styles.promptCard,
+                selectedPrompt?.id === prompt.id && styles.promptCardSelected,
               ]}
-              onPress={() => setSelectedDifficulty(difficulty.level as any)}
+              onPress={() => setSelectedPrompt(prompt)}
             >
-              <View style={styles.difficultyHeader}>
-                <Text style={[
-                  styles.difficultyName,
-                  selectedDifficulty === difficulty.level && { color: difficulty.color }
-                ]}>
-                  {difficulty.name}
-                </Text>
-                <Text style={[
-                  styles.difficultyPoints,
-                  { color: difficulty.color }
-                ]}>
-                  {difficulty.points}
-                </Text>
+              <Text style={styles.promptIcon}>{prompt.icon}</Text>
+              <View style={styles.promptContent}>
+                <Text style={styles.promptTitle}>{prompt.title}</Text>
+                <Text style={styles.promptDescription}>{prompt.description}</Text>
               </View>
-              {selectedDifficulty === difficulty.level && (
-                <Zap size={16} color={difficulty.color} />
-              )}
+              <ChevronRight size={20} color="#9CA3AF" />
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Category Selection */}
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <View style={styles.categoriesGrid}>
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryCard,
-                selectedCategory === category.id && styles.selectedCategory,
-                { borderColor: category.color }
-              ]}
-              onPress={() => setSelectedCategory(category.id)}
-            >
-              <Text style={styles.categoryIcon}>{category.icon}</Text>
-              <Text style={styles.categoryName}>{category.name}</Text>
-              {selectedCategory === category.id && (
-                <View style={[styles.selectedIndicator, { backgroundColor: category.color }]} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Input Area */}
+        {selectedPrompt && (
+          <View style={styles.inputSection}>
+            <View style={styles.selectedPromptBanner}>
+              <Text style={styles.selectedPromptIcon}>{selectedPrompt.icon}</Text>
+              <Text style={styles.selectedPromptTitle}>{selectedPrompt.title}</Text>
+            </View>
 
-        {/* Quick Start Options */}
-        <View style={styles.quickStartContainer}>
-          <TouchableOpacity
-            style={styles.quickStartButton}
-            onPress={() => router.push('/game/ar-camera')}
-          >
-            <LinearGradient
-              colors={['#06B6D4', '#3B82F6']}
-              style={styles.quickStartGradient}
-            >
-              <BookOpen size={24} color="white" />
-              <Text style={styles.quickStartText}>Start AR Game Now</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            {inputMode === 'audio' ? (
+              <View style={styles.audioSection}>
+                {!recordingState.isRecording ? (
+                  <>
+                    <TouchableOpacity
+                      style={styles.recordButton}
+                      onPress={handleStartRecording}
+                    >
+                      <LinearGradient
+                        colors={['#EF4444', '#DC2626']}
+                        style={styles.recordButtonGradient}
+                      >
+                        <Mic size={48} color="white" />
+                      </LinearGradient>
+                    </TouchableOpacity>
+                    <Text style={styles.recordHint}>Tekan untuk mulai merekam</Text>
+                    <View style={styles.recordInfo}>
+                      <Clock size={16} color="#6B7280" />
+                      <Text style={styles.recordInfoText}>Maksimal 3 menit</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.recordingIndicator}>
+                      <View style={styles.recordingDot} />
+                      <Text style={styles.recordingText}>Merekam...</Text>
+                    </View>
+                    <Text style={styles.recordingDuration}>
+                      {formatDuration(recordingState.duration)} / 3:00
+                    </Text>
+                    <View style={styles.recordingControls}>
+                      {recordingState.isPaused ? (
+                        <TouchableOpacity
+                          style={styles.controlButton}
+                          onPress={resumeRecording}
+                        >
+                          <Play size={24} color="#10B981" />
+                          <Text style={styles.controlButtonText}>Lanjutkan</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.controlButton}
+                          onPress={pauseRecording}
+                        >
+                          <Pause size={24} color="#F59E0B" />
+                          <Text style={styles.controlButtonText}>Jeda</Text>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        style={styles.controlButton}
+                        onPress={cancelRecording}
+                      >
+                        <X size={24} color="#EF4444" />
+                        <Text style={styles.controlButtonText}>Batal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.controlButton, styles.stopButton]}
+                        onPress={handleStopRecording}
+                      >
+                        <Send size={24} color="white" />
+                        <Text style={[styles.controlButtonText, styles.stopButtonText]}>Selesai</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
+              </View>
+            ) : (
+              <View style={styles.textSection}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Mulai menulis ceritamu di sini..."
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={8}
+                  value={storyText}
+                  onChangeText={setStoryText}
+                  textAlignVertical="top"
+                />
+                <Text style={styles.charCount}>{storyText.length} karakter</Text>
+              </View>
+            )}
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => router.push('/(tabs)/leaderboard')}
-          >
-            <Trophy size={20} color="#8B5CF6" />
-            <Text style={styles.secondaryButtonText}>View Leaderboard</Text>
-          </TouchableOpacity>
-        </View>
+            {inputMode === 'text' && (
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  (!storyText || isSubmitting) && styles.submitButtonDisabled,
+                ]}
+                onPress={() => handleSubmitStory()}
+                disabled={!storyText || isSubmitting}
+              >
+                <LinearGradient
+                  colors={['#8B5CF6', '#7C3AED']}
+                  style={styles.submitButtonGradient}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <>
+                      <Sparkles size={20} color="white" />
+                      <Text style={styles.submitButtonText}>Kirim untuk Evaluasi AI</Text>
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -185,6 +349,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 8,
+    marginTop: 8,
   },
   headerSubtitle: {
     fontSize: 16,
@@ -194,42 +359,45 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 16,
-    marginTop: 20,
-  },
-  gameModeContainer: {
-    gap: 12,
-  },
-  gameModeButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  gameModeGradient: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  gameModeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  gameModeDescription: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-  },
-  difficultyContainer: {
-    gap: 12,
-  },
-  difficultyButton: {
+  modeToggle: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 24,
+  },
+  modeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  modeButtonActive: {
+    backgroundColor: '#10B981',
+  },
+  modeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  modeButtonTextActive: {
+    color: 'white',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  promptsContainer: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  promptCard: {
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
     padding: 16,
@@ -237,91 +405,170 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E5E7EB',
   },
-  selectedDifficulty: {
-    backgroundColor: '#F8FAFC',
+  promptCardSelected: {
+    borderColor: '#10B981',
+    backgroundColor: '#F0FDF4',
   },
-  difficultyHeader: {
+  promptIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  promptContent: {
     flex: 1,
   },
-  difficultyName: {
+  promptTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  difficultyPoints: {
+  promptDescription: {
     fontSize: 14,
-    fontWeight: '500',
+    color: '#6B7280',
+    lineHeight: 20,
   },
-  categoriesGrid: {
+  inputSection: {
+    marginTop: 8,
+  },
+  selectedPromptBanner: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  categoryCard: {
-    width: '48%',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    position: 'relative',
+    backgroundColor: '#10B981',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 8,
   },
-  selectedCategory: {
-    backgroundColor: '#F8FAFC',
+  selectedPromptIcon: {
+    fontSize: 24,
   },
-  categoryIcon: {
-    fontSize: 32,
+  selectedPromptTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  audioSection: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  recordButton: {
+    borderRadius: 60,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  recordButtonGradient: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recordHint: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500',
     marginBottom: 8,
   },
-  categoryName: {
+  recordInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  recordInfoText: {
     fontSize: 14,
-    fontWeight: '600',
+    color: '#6B7280',
+  },
+  textSection: {
+    marginBottom: 16,
+  },
+  textInput: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    minHeight: 160,
     color: '#1F2937',
   },
-  selectedIndicator: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  charCount: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'right',
+    marginTop: 8,
   },
-  quickStartContainer: {
-    marginTop: 30,
-    gap: 12,
-  },
-  quickStartButton: {
+  submitButton: {
     borderRadius: 12,
     overflow: 'hidden',
+    marginTop: 8,
   },
-  quickStartGradient: {
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  submitButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 18,
+    padding: 16,
     gap: 8,
   },
-  quickStartText: {
-    fontSize: 18,
+  submitButtonText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
   },
-  secondaryButton: {
+  recordingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#8B5CF6',
+    marginBottom: 12,
     gap: 8,
   },
-  secondaryButtonText: {
-    fontSize: 16,
+  recordingDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#EF4444',
+  },
+  recordingText: {
+    fontSize: 18,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#EF4444',
+  },
+  recordingDuration: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  recordingControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  controlButton: {
+    alignItems: 'center',
+    backgroundColor: 'white',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    minWidth: 90,
+  },
+  stopButton: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  controlButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  stopButtonText: {
+    color: 'white',
   },
 });

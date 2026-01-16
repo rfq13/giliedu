@@ -3,7 +3,8 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      ["react-native-worklets-core/plugin", { processNestedWorklets: true }],
+      'react-native-reanimated/plugin',
+      'react-native-worklets-core/plugin',
     ],
   };
 };
