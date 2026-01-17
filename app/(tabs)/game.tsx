@@ -21,6 +21,7 @@ import {
   X,
   Send,
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { storyAPI } from '../../services/api';
 
@@ -36,7 +37,8 @@ const storyPrompts: StoryPrompt[] = [
   {
     id: '1',
     title: 'Liburan Terbaik',
-    description: 'Ceritakan pengalaman liburan paling berkesan yang pernah kamu alami.',
+    description:
+      'Ceritakan pengalaman liburan paling berkesan yang pernah kamu alami.',
     ageGroup: 'sd',
     icon: '🏖️',
   },
@@ -50,7 +52,8 @@ const storyPrompts: StoryPrompt[] = [
   {
     id: '3',
     title: 'Jika Aku Jadi...',
-    description: 'Jika kamu bisa jadi siapa saja sehari, siapa yang kamu pilih?',
+    description:
+      'Jika kamu bisa jadi siapa saja sehari, siapa yang kamu pilih?',
     ageGroup: 'smp',
     icon: '✨',
   },
@@ -65,10 +68,12 @@ const storyPrompts: StoryPrompt[] = [
 
 export default function RuangCeritaScreen() {
   const [inputMode, setInputMode] = useState<'audio' | 'text'>('audio');
-  const [selectedPrompt, setSelectedPrompt] = useState<StoryPrompt | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<StoryPrompt | null>(
+    null
+  );
   const [storyText, setStoryText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const {
     recordingState,
     startRecording,
@@ -156,10 +161,7 @@ export default function RuangCeritaScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <LinearGradient
-        colors={['#10B981', '#059669']}
-        style={styles.header}
-      >
+      <LinearGradient colors={['#10B981', '#059669']} style={styles.header}>
         <Sparkles size={32} color="white" />
         <Text style={styles.headerTitle}>Ruang Cerita</Text>
         <Text style={styles.headerSubtitle}>
@@ -168,23 +170,59 @@ export default function RuangCeritaScreen() {
       </LinearGradient>
 
       <View style={styles.content}>
+        {/* Quick Start AR CTA */}
+        <TouchableOpacity
+          style={styles.quickStartButton}
+          onPress={() => router.push('/game/ar-camera')}
+        >
+          <LinearGradient
+            colors={['#06B6D4', '#3B82F6']}
+            style={styles.quickStartGradient}
+          >
+            <Play size={20} color="white" />
+            <Text style={styles.quickStartText}>Start AR Game Now</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
         {/* Input Mode Toggle */}
         <View style={styles.modeToggle}>
           <TouchableOpacity
-            style={[styles.modeButton, inputMode === 'audio' && styles.modeButtonActive]}
+            style={[
+              styles.modeButton,
+              inputMode === 'audio' && styles.modeButtonActive,
+            ]}
             onPress={() => setInputMode('audio')}
           >
-            <Mic size={20} color={inputMode === 'audio' ? 'white' : '#6B7280'} />
-            <Text style={[styles.modeButtonText, inputMode === 'audio' && styles.modeButtonTextActive]}>
+            <Mic
+              size={20}
+              color={inputMode === 'audio' ? 'white' : '#6B7280'}
+            />
+            <Text
+              style={[
+                styles.modeButtonText,
+                inputMode === 'audio' && styles.modeButtonTextActive,
+              ]}
+            >
               Rekam Suara
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.modeButton, inputMode === 'text' && styles.modeButtonActive]}
+            style={[
+              styles.modeButton,
+              inputMode === 'text' && styles.modeButtonActive,
+            ]}
             onPress={() => setInputMode('text')}
           >
-            <Edit3 size={20} color={inputMode === 'text' ? 'white' : '#6B7280'} />
-            <Text style={[styles.modeButtonText, inputMode === 'text' && styles.modeButtonTextActive]}>
+            <Edit3
+              size={20}
+              color={inputMode === 'text' ? 'white' : '#6B7280'}
+            />
+            <Text
+              style={[
+                styles.modeButtonText,
+                inputMode === 'text' && styles.modeButtonTextActive,
+              ]}
+            >
               Tulis Cerita
             </Text>
           </TouchableOpacity>
@@ -205,7 +243,9 @@ export default function RuangCeritaScreen() {
               <Text style={styles.promptIcon}>{prompt.icon}</Text>
               <View style={styles.promptContent}>
                 <Text style={styles.promptTitle}>{prompt.title}</Text>
-                <Text style={styles.promptDescription}>{prompt.description}</Text>
+                <Text style={styles.promptDescription}>
+                  {prompt.description}
+                </Text>
               </View>
               <ChevronRight size={20} color="#9CA3AF" />
             </TouchableOpacity>
@@ -216,8 +256,12 @@ export default function RuangCeritaScreen() {
         {selectedPrompt && (
           <View style={styles.inputSection}>
             <View style={styles.selectedPromptBanner}>
-              <Text style={styles.selectedPromptIcon}>{selectedPrompt.icon}</Text>
-              <Text style={styles.selectedPromptTitle}>{selectedPrompt.title}</Text>
+              <Text style={styles.selectedPromptIcon}>
+                {selectedPrompt.icon}
+              </Text>
+              <Text style={styles.selectedPromptTitle}>
+                {selectedPrompt.title}
+              </Text>
             </View>
 
             {inputMode === 'audio' ? (
@@ -235,10 +279,14 @@ export default function RuangCeritaScreen() {
                         <Mic size={48} color="white" />
                       </LinearGradient>
                     </TouchableOpacity>
-                    <Text style={styles.recordHint}>Tekan untuk mulai merekam</Text>
+                    <Text style={styles.recordHint}>
+                      Tekan untuk mulai merekam
+                    </Text>
                     <View style={styles.recordInfo}>
                       <Clock size={16} color="#6B7280" />
-                      <Text style={styles.recordInfoText}>Maksimal 3 menit</Text>
+                      <Text style={styles.recordInfoText}>
+                        Maksimal 3 menit
+                      </Text>
                     </View>
                   </>
                 ) : (
@@ -257,7 +305,9 @@ export default function RuangCeritaScreen() {
                           onPress={resumeRecording}
                         >
                           <Play size={24} color="#10B981" />
-                          <Text style={styles.controlButtonText}>Lanjutkan</Text>
+                          <Text style={styles.controlButtonText}>
+                            Lanjutkan
+                          </Text>
                         </TouchableOpacity>
                       ) : (
                         <TouchableOpacity
@@ -280,7 +330,14 @@ export default function RuangCeritaScreen() {
                         onPress={handleStopRecording}
                       >
                         <Send size={24} color="white" />
-                        <Text style={[styles.controlButtonText, styles.stopButtonText]}>Selesai</Text>
+                        <Text
+                          style={[
+                            styles.controlButtonText,
+                            styles.stopButtonText,
+                          ]}
+                        >
+                          Selesai
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </>
@@ -298,7 +355,9 @@ export default function RuangCeritaScreen() {
                   onChangeText={setStoryText}
                   textAlignVertical="top"
                 />
-                <Text style={styles.charCount}>{storyText.length} karakter</Text>
+                <Text style={styles.charCount}>
+                  {storyText.length} karakter
+                </Text>
               </View>
             )}
 
@@ -320,7 +379,9 @@ export default function RuangCeritaScreen() {
                   ) : (
                     <>
                       <Sparkles size={20} color="white" />
-                      <Text style={styles.submitButtonText}>Kirim untuk Evaluasi AI</Text>
+                      <Text style={styles.submitButtonText}>
+                        Kirim untuk Evaluasi AI
+                      </Text>
                     </>
                   )}
                 </LinearGradient>
@@ -358,6 +419,23 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+  },
+  quickStartButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  quickStartGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+  },
+  quickStartText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   modeToggle: {
     flexDirection: 'row',
